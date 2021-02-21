@@ -1,11 +1,15 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, StatusBar, View } from 'react-native';
+import MainScreen from './controller/mainScreen';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+      <StatusBar barStyle = "dark-content" 
+      animated={true}
+      barStyle= "default"
+      hidden = {false} translucent = {true}/>
+      <MainScreen />
       <StatusBar style="auto" />
     </View>
   );
