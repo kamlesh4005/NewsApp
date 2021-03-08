@@ -1,10 +1,20 @@
 import React,{ useEffect, Component } from 'react';
 import { StyleSheet, StatusBar, View, BackHandler, ToastAndroid, Linking, Alert } from 'react-native';
 import MainScreen from './controller/mainScreen';
+import * as Notifications from 'expo-notifications'
+import Constants from 'expo-constants';
 import registerForPushNotifications from './controller/registerForPushNotifications';
 
 let backPressed = 0;
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+const deviceId = Constants.deviceId;
 export default class App extends Component {
   constructor(){
     super();
@@ -14,13 +24,20 @@ export default class App extends Component {
     }
   }
 
-  useEffect() {
-    registerForPushNotifications();
+  componentDidMount(){
+    registerForPushNotifications(deviceId);
+    BackHandler.addEventListener('hardwareBackPress', this.handleBackButton.bind(this));
+    Notifications.addNotificationReceivedListener(this._handleNotification);
+    Notifications.addNotificationResponseReceivedListener(this._handleNotificationResponse);
+  }
+
+  _handleNotification = notification => {
+    this.setState({ notification: notification });
   };
 
-  componentDidMount(){
-    BackHandler.addEventListener('hardwareBackPress', this.handleBackButton.bind(this));
-  }
+  _handleNotificationResponse = response => {
+    console.log("\n\n response ", response);
+  };
 
   handleBackButton(){
     if(backPressed > 0){
@@ -28,11 +45,12 @@ export default class App extends Component {
       backPressed = 0;
     }else {
       backPressed++;
+      // Check If we can provide this Alert as Model
       Alert.alert(
-        'Rate us',
-        'Would you like to share your review with us? This will help and motivate us a lot.',
+        'We’d love to hear your feedback!',
+        'Thank you for being a customer🙂\nWould you like to share your review with us? This will help and motivate us a lot.',
         [
-          {text: 'Sure', onPress: () => this.openStore()},
+          {text: 'Sure👍', onPress: () => this.openStore()},
           {
             text: 'Later!',
             onPress: () => console.log('Later Pressed'),
@@ -50,7 +68,7 @@ export default class App extends Component {
 
   openStore() {
     if (Platform.OS != 'ios') {
-      ToastAndroid.show("Please Provide 5 * rating to US....", ToastAndroid.LONG);
+      ToastAndroid.show("Let us enjoy your special 5 🌟 Rating.", ToastAndroid.LONG);
       Linking.openURL(
         `market://details?id=com.flipkart.android`,
       ).catch(

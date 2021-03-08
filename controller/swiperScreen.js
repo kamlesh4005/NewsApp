@@ -63,9 +63,24 @@ export default class SwiperComponent extends Component {
     super(props);
 
     this.state = {
-        response: []
+        response: [],
+        currIndex: 0
     };
   }
+
+  handleOnIndexChanged(index) {
+    // Check If this is last index then append some more news in it...
+    if(index+5 >= this.state.response.length){
+      this.setState({currIndex: index })
+      Axios.get("https://inshortsapi.vercel.app/news?category=hatke")
+      .then(function (apiResponse) {
+        this.setState({ response: this.state.response.concat(apiResponse.data.data)})
+      }.bind(this)); 
+    }
+    // Get DeviceId & Update that news is readed...
+    // Notifications Logic ?
+  }
+
   componentDidMount() {
     Axios.get("https://inshortsapi.vercel.app/news?category=technology")
     .then(function (apiResponse) {
@@ -80,7 +95,10 @@ export default class SwiperComponent extends Component {
         loop={false} 
         showsPagination={false} 
         horizontal={false}
-
+        bounces={true}
+        key={this.state.response.length} 
+        index={this.state.currIndex}
+        onIndexChanged={(index) => this.handleOnIndexChanged(index)}
         >
             {
                 this.state.response.map((item, index) => {
