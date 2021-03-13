@@ -4,6 +4,8 @@ import MainScreen from './controller/mainScreen';
 import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants';
 import registerForPushNotifications from './controller/registerForPushNotifications';
+import config from './controller/config.json';
+import getSetUserData from "./controller/utils/getSetUserData";
 
 let backPressed = 0;
 
@@ -19,16 +21,28 @@ export default class App extends Component {
   constructor(){
     super();
     this.state = {
+      userData: {},
       isloggedin: false,
       backPressed: 1
     }
   }
 
   componentDidMount(){
-    registerForPushNotifications(deviceId);
+    this._getSetUserData(deviceId)
+    // registerForPushNotifications(deviceId)
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton.bind(this));
     Notifications.addNotificationReceivedListener(this._handleNotification);
     Notifications.addNotificationResponseReceivedListener(this._handleNotificationResponse);
+  }
+
+  _getSetUserData = deviceId => {
+      return getSetUserData(deviceId)
+    .then(function (userData){
+      return this.setState({userData: userData});
+    }.bind(this))
+    .catch(
+      (err) => console.log('Error while fetching user data ', err)
+    )
   }
 
   _handleNotification = notification => {
@@ -46,6 +60,7 @@ export default class App extends Component {
     }else {
       backPressed++;
       // Check If we can provide this Alert as Model
+      console.log("\n\n\n THIS. STATE.USERDATA - \n", JSON.stringify(this.state.userData))
       Alert.alert(
         'We’d love to hear your feedback!',
         'Thank you for being a customer🙂\nWould you like to share your review with us? This will help and motivate us a lot.',
@@ -70,7 +85,7 @@ export default class App extends Component {
     if (Platform.OS != 'ios') {
       ToastAndroid.show("Let us enjoy your special 5 🌟 Rating.", ToastAndroid.LONG);
       Linking.openURL(
-        `market://details?id=com.flipkart.android`,
+        config.app.playStoreUrl,
       ).catch(
           (err) => alert('Please check for Google Play Store')
       );

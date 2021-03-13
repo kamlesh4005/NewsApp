@@ -1,0 +1,9 @@
+{
+    "app":{
+        "url": "http://192.168.0.104:8003",
+        "userEndPoint": "/user",
+        "postEndPoint": "/post",
+        "playStoreUrl": "market://details?id=com.flipkart.android",
+        "userPrefix": "u-"
+    }
+}

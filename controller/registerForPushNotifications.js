@@ -1,8 +1,9 @@
 //registerForPushNotifications.js
 import * as Notifications from 'expo-notifications'
 import * as Permissions from 'expo-permissions';
-
-const PUSH_ENDPOINT = 'https://radial-holy-list.glitch.me/token';
+import axios from 'axios';
+import config from "./config.json";
+const baseUrl = config.app.url + config.app.userEndPoint;
 
 const registerForPushNotifications = async (deviceId) => {
   const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
@@ -12,9 +13,10 @@ const registerForPushNotifications = async (deviceId) => {
   }
   // Get the token that identifies this device
   let token = await Notifications.getExpoPushTokenAsync();
+  const userId = config.app.userPrefix + deviceId;
   // POST the token to your backend server from where you can retrieve it to send push notifications.
-  return fetch(PUSH_ENDPOINT, {
-    method: 'POST',
+  return fetch(baseUrl + "/" + userId, {
+    method: 'PUT',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
