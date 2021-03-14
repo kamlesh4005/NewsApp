@@ -50,7 +50,8 @@ export default class App extends Component {
   };
 
   _handleNotificationResponse = response => {
-    console.log("\n\n response ", response);
+    // Notification Coming Here... Check if we can open particular news
+    // console.log("\n\n response ", response);
   };
 
   handleBackButton(){
@@ -60,7 +61,6 @@ export default class App extends Component {
     }else {
       backPressed++;
       // Check If we can provide this Alert as Model
-      console.log("\n\n\n THIS. STATE.USERDATA - \n", JSON.stringify(this.state.userData))
       Alert.alert(
         'We’d love to hear your feedback!',
         'Thank you for being a customer🙂\nWould you like to share your review with us? This will help and motivate us a lot.',

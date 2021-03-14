@@ -3,9 +3,15 @@ import { Image, StyleSheet, Text, View, Dimensions, ScrollView } from 'react-nat
 import { Ionicons } from '@expo/vector-icons';
 import Moment from 'moment';
 import Swiper from 'react-native-swiper'
+import Constants from 'expo-constants';
 import Axios from 'axios'
+import config from "./config.json";
+import getSetUserData from "./utils/updateUserReadData";
+
+const baseUrl = config.app.url + config.app.postEndPoint;
 
 const { width, height } = Dimensions.get('window');
+const deviceId = Constants.deviceId;
 
 const styles = StyleSheet.create({
   wrapper: {},
@@ -64,27 +70,52 @@ export default class SwiperComponent extends Component {
 
     this.state = {
         response: [],
+        skip: 0,
+        lastReadDataIndex: 0,
         currIndex: 0
     };
   }
 
   handleOnIndexChanged(index) {
     // Check If this is last index then append some more news in it...
-    if(index+5 >= this.state.response.length){
-      this.setState({currIndex: index })
-      Axios.get("https://inshortsapi.vercel.app/news?category=hatke")
+    this.setState({ currIndex: index });
+    if(index && (index + 5 >= this.state.response.length)){
+      Axios.get(baseUrl, {
+        params: {
+          uId: config.app.userPrefix + deviceId,
+          skip: this.state.skip + config.post.limit,
+          limit: config.post.limit
+        }
+      })
       .then(function (apiResponse) {
-        this.setState({ response: this.state.response.concat(apiResponse.data.data)})
+        // this.setState({ currIndex: index });
+        this.setState({ response: this.state.response.concat(apiResponse.data)});
+        // this.setState({skip: this.state.skip + config.post.limit });
       }.bind(this)); 
     }
-    // Get DeviceId & Update that news is readed...
+    // Sending Read Data APIs 
+    if(index - this.state.lastReadDataIndex > 5){
+      var newsData = this.state.response.slice(this.state.lastReadDataIndex, index)
+      if(newsData && newsData.length){
+        this.setState({ lastReadDataIndex: this.state.lastReadDataIndex + index })
+        var readIds = newsData.map(data => data._id);
+        getSetUserData(deviceId, readIds);
+      }
+    }
+    return;
     // Notifications Logic ?
   }
 
   componentDidMount() {
-    Axios.get("https://inshortsapi.vercel.app/news?category=technology")
+    Axios.get(baseUrl,{
+      params: {
+        uId: config.app.userPrefix + deviceId,
+        skip: this.state.skip,
+        limit: config.post.limit
+      }
+    })
     .then(function (apiResponse) {
-      this.setState({ response: apiResponse.data.data});
+      this.setState({ response: apiResponse.data});
     }.bind(this));
   }
 
@@ -115,7 +146,7 @@ export default class SwiperComponent extends Component {
                       </View>
                       <View style={styles.contentView}>
                         <Text style={styles.titleBox}>{item.title}</Text>
-                        <Text style={styles.dateBox}><Ionicons name="md-time" size={14} color="green" /> {Moment(item.created_at).format('lll')}</Text>
+                        <Text style={styles.dateBox}><Ionicons name="md-time" size={14} color="green" /> {Moment(item.createdOn).format('lll')}</Text>
                         <Text style={styles.descriptionBox}>
                           {item.content}
                         </Text>

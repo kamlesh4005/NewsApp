@@ -1,13 +1,13 @@
 import * as Notifications from 'expo-notifications'
 import * as Permissions from 'expo-permissions';
 import config from "./../config.json";
-import axios from 'axios';
+import Axios from 'axios';
 const baseUrl = config.app.url + config.app.userEndPoint;
 
 
 const getSetUserData = async (deviceId) => {
     const userId = config.app.userPrefix + deviceId;
-    return axios.get(baseUrl + "/" + userId).then(async function(res){
+    return Axios.get(baseUrl + "/" + userId).then(async function(res){
         if(!res || res.status != 200 || !res.data){
             // Add User and its expo token here
             const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
@@ -28,7 +28,7 @@ const getSetUserData = async (deviceId) => {
 }
 
 const addUser = async(userData) => {
-    var addedUserData = await axios.post(baseUrl+"/", userData);
+    var addedUserData = await Axios.post(baseUrl+"/", userData);
     let newUserData = {};
     if(addedUserData && addedUserData.data && addedUserData.data.length){
         return addedUserData.data[0];
