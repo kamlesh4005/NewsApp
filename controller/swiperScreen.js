@@ -6,7 +6,7 @@ import Swiper from 'react-native-swiper'
 import Constants from 'expo-constants';
 import Axios from 'axios'
 import config from "./config.json";
-import getSetUserData from "./utils/updateUserReadData";
+import updateUserData from "./utils/updateUserData";
 
 const baseUrl = config.app.url + config.app.postEndPoint;
 
@@ -99,7 +99,7 @@ export default class SwiperComponent extends Component {
       if(newsData && newsData.length){
         this.setState({ lastReadDataIndex: this.state.lastReadDataIndex + index })
         var readIds = newsData.map(data => data._id);
-        getSetUserData(deviceId, readIds);
+        updateUserData(deviceId, {readData: readIds});
       }
     }
     return;

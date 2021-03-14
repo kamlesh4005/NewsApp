@@ -5,7 +5,9 @@ import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants';
 import registerForPushNotifications from './controller/registerForPushNotifications';
 import config from './controller/config.json';
+import Moment from 'moment';
 import getSetUserData from "./controller/utils/getSetUserData";
+import updateUserData from "./controller/utils/updateUserData";
 
 let backPressed = 0;
 
@@ -58,31 +60,39 @@ export default class App extends Component {
     if(backPressed > 0){
       BackHandler.exitApp();
       backPressed = 0;
-    }else {
+    } else {
       backPressed++;
-      // Check If we can provide this Alert as Model
-      Alert.alert(
-        'We’d love to hear your feedback!',
-        'Thank you for being a customer🙂\nWould you like to share your review with us? This will help and motivate us a lot.',
-        [
-          {text: 'Sure👍', onPress: () => this.openStore()},
-          {
-            text: 'Later!',
-            onPress: () => console.log('Later Pressed'),
-            style: 'cancel',
-          },
-          {text: 'Exit', onPress: () => BackHandler.exitApp()},
-        ],
-        {cancelable: false},
-      );
-      //ToastAndroid.show("Press Again To Exit", ToastAndroid.SHORT);
+      var uData = this.state.userData;
+      if(uData && uData.showRateUs && !uData.gotRating){
+        Alert.alert(
+          'We’d love to hear your feedback!',
+          'Thank you for being a customer🙂\nWould you like to share your review with us? This will help and motivate us a lot.',
+          [
+            {text: 'Sure👍', onPress: () => this.openStore()},
+            {
+              text: 'Later!',
+              style: 'cancel',
+              onPress: () => this.handleLaterButton()
+            },
+            {text: 'Exit', onPress: () => BackHandler.exitApp()},
+          ],
+          {cancelable: false},
+        );
+      } else {
+        ToastAndroid.show("Press Again To Exit", ToastAndroid.SHORT);
+      }
       setTimeout( () => { backPressed = 0}, 2000);
       return true;
     }
   }
 
+  handleLaterButton(){
+    updateUserData(deviceId, { showRateUs: false, sruUpdatedOn: Moment() })
+  }
+
   openStore() {
     if (Platform.OS != 'ios') {
+      updateUserData(deviceId, {showRateUs: false, gotRating: true})
       ToastAndroid.show("Let us enjoy your special 5 🌟 Rating.", ToastAndroid.LONG);
       Linking.openURL(
         config.app.playStoreUrl,
