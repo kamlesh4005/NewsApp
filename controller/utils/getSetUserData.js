@@ -23,7 +23,7 @@ const getSetUserData = async (deviceId) => {
             return res.data;
         }
     }).catch(
-        (err) => console.log('Error while fetching user data - ', err)
+        (err) => console.log('Error while fetching user data ( Get Users ) - ', err)
     )
 }
 

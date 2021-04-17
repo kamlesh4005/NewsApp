@@ -7,6 +7,14 @@ import Constants from 'expo-constants';
 import Axios from 'axios'
 import config from "./config.json";
 import updateUserData from "./utils/updateUserData";
+import {
+  AdMobBanner,
+  AdMobInterstitial,
+  // PublisherBanner,
+  // AdMobRewarded,
+  // setTestDeviceIDAsync,
+} from 'expo-ads-admob';
+
 
 const baseUrl = config.app.url + config.app.postEndPoint;
 
@@ -15,6 +23,24 @@ const deviceId = Constants.deviceId;
 
 const styles = StyleSheet.create({
   wrapper: {},
+  bottomAd: {
+    flex:1,
+    position:"absolute",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: (height/2) - 150,
+    marginLeft: (width/2) - 150
+  },
+  bottomBanner: {
+    position: "absolute",
+    bottom: 0
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center"
+  },
   text: {
     color: '#fff',
     fontSize: 30,
@@ -22,8 +48,8 @@ const styles = StyleSheet.create({
   },
   titleBox: {
     paddingTop: 0,
-    fontSize: 20,
-    marginHorizontal: 10,
+    fontSize: (height + width) / 50,
+    marginHorizontal: 15,
     fontWeight: "800",
 
   },
@@ -50,18 +76,18 @@ const styles = StyleSheet.create({
   },
   descriptionBox: {
     padding: 10,
-    fontSize: 16,
+    fontSize: (height + width) / 75,
     color: "#3e423e",
     fontWeight: "100",
     lineHeight: 20
   },
   dateBox: {
     padding: 10,
-    paddingBottom: 0,
+    //paddingBottom: 10,
     fontSize: 13,
     color: "#009933",
     fontWeight: "100",
-    lineHeight: 10
+    // lineHeight: 10
   }
 })
 export default class SwiperComponent extends Component {
@@ -77,6 +103,10 @@ export default class SwiperComponent extends Component {
   }
 
   handleOnIndexChanged(index) {
+
+    if(index == config.post.showInterstitialAdIndex){
+      return this.showInterstitialAd();
+    }
     // Check If this is last index then append some more news in it...
     this.setState({ currIndex: index });
     if(index && (index + 5 >= this.state.response.length)){
@@ -115,8 +145,25 @@ export default class SwiperComponent extends Component {
       }
     })
     .then(function (apiResponse) {
+      if(apiResponse && apiResponse.data && apiResponse.data.length && config.post.showPostBannerAds === true){
+        var len = apiResponse.data.length;
+        var count = config.post.showPostBannerAdsAfterPost;
+        var incCount = count;
+        var forEachCount = len/count;
+        for(let i=0; i<forEachCount && len > incCount; i++){
+          apiResponse.data.splice(incCount, 0, {showAd : true });
+          incCount += count;
+        }
+      }
       this.setState({ response: apiResponse.data});
     }.bind(this));
+  }
+
+  async showInterstitialAd(){
+    // Display an interstitial
+    await AdMobInterstitial.setAdUnitID('ca-app-pub-3940256099942544/1033173712'); // Test ID, Replace with your-admob-unit-id
+    await AdMobInterstitial.requestAdAsync({ servePersonalizedAds: true});
+    await AdMobInterstitial.showAdAsync();
   }
 
   render() {
@@ -134,24 +181,45 @@ export default class SwiperComponent extends Component {
             {
                 this.state.response.map((item, index) => {
                   return (
-                    <View
-                      style={styles.cardView}
-                      key={index}
-                    >
-                      <View style={styles.imageView}>
-                        <Image
-                          source={{uri: item.imageUrl}}
-                          style={styles.image}
-                        />
+                    <View key={index}>
+                    { item.showAd === true ? 
+                      <View style={styles.bottomAd}>
+                      <AdMobBanner
+                        bannerSize = "mediumRectangle"
+                        adUnitID = "ca-app-pub-3940256099942544/6300978111" // Test ID, Replace with your-admob-unit-id
+                        servePersonalizedAds // true or false
+                        onDidFailToReceiveAdWithError = {this.bannerError} />
+
+                      {/*                                               
+                      <PublisherBanner
+                        bannerSize= "mediumRectangle"
+                        adUnitID="ca-app-pub-3940256099942544/6300978111" // Test ID, Replace with your-admob-unit-id
+                        onDidFailToReceiveAdWithError={this.bannerError}
+                        onAdMobDispatchAppEvent={this.adMobEvent} /> */}
+
                       </View>
-                      <View style={styles.contentView}>
-                        <Text style={styles.titleBox}>{item.title}</Text>
-                        <Text style={styles.dateBox}><Ionicons name="md-time" size={14} color="green" /> {Moment(item.createdOn).format('lll')}</Text>
-                        <Text style={styles.descriptionBox}>
-                          {item.content}
-                        </Text>
+                      :
+                        <View
+                          style={styles.cardView}
+                          key={index}
+                        >
+                          <View style={styles.imageView}>
+                            <Image
+                              source={{uri: item.imageUrl}}
+                              style={styles.image}
+                            />
+                          </View>
+                          <View style={styles.contentView}>
+                            <Text style={styles.titleBox}>{item.title}</Text>
+                            <Text style={styles.dateBox}><Ionicons name="md-time" size={14} color="green" /> {Moment(item.createdOn).format('lll')}</Text>
+                            <Text style={styles.descriptionBox}>
+                              {item.content}
+                            </Text>
+                          </View>
+                          
+                        </View>
+                      }
                       </View>
-                    </View>
                   );
                 })
             }

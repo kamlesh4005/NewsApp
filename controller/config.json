@@ -1,12 +1,16 @@
 {
     "app":{
-        "url": "http://192.168.0.104:8003",
+        "url": "https://c608d8bd3c47.ngrok.io", // "http://192.168.0.104:8003",
         "userEndPoint": "/user",
         "postEndPoint": "/posts",
         "playStoreUrl": "market://details?id=com.flipkart.android",
         "userPrefix": "u-"
     },
     "post":{
-        "limit": 50
+        "limit": 50,
+        "showPostBannerAds": true,
+        "showPostBannerAdsAfterPost": 4,
+        "showBottomBannerAds": true,
+        "showInterstitialAdIndex": 12
     }
 }
